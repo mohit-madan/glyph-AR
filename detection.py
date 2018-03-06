@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+i=0
 
 cap = cv2.VideoCapture(0)
 
@@ -21,13 +22,31 @@ while(True):
         
     #approxiamating contours 
     # cnt = contours[0]
-    # epsilon = 0.1*cv2.arcLength(cnt,True)
-    # approx = cv2.approxPolyDP(cnt,epsilon,True)
-    # print(approx)
+    for cnt in contours:
+        #We will find if each of the detected contour is of quad shape, then we will do the perspective
+        #transform of the image to get the quad in top down view and then the glyph detction lago will prceed
+        epsilon = 0.01*cv2.arcLength(cnt,True)
+        approx = cv2.approxPolyDP(cnt,epsilon,False)
+        cv2.drawContours(frame, cnt, -1, (0,255,0), 3)
+        cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
+        vert = len(approx)
+        if vert ==4:
+            print(vert)
+            i=i+1   
+            print(i)
+            approx = approx.reshape(4,2)
+            print(approx)
+            break
+
+ #   if vert ==4:
+  #      break
+
     
     # Display the resulting frame
-    cv2.drawContours(frame, contours, -1, (0,255,0), 3)    
+        
+
     cv2.imshow('frame',frame)
+
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
