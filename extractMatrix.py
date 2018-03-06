@@ -1,5 +1,7 @@
-def extractmatrix(image,pts):
-	(tl,tr,br,bl) = rect
+def extractMatrix(pts):
+	pts = order_pts(pts)
+	print(pts)
+	(tl,tr,br,bl) = pts
 
 	#compute max height 
 	h1 = np.sqrt(np.square(tl[1] - bl[1]) + np.square(tl[0] - bl[0]))
@@ -15,6 +17,6 @@ def extractmatrix(image,pts):
 	newPoints = np.array([[0,0],[newWidth-1,0],[newWidth-1,newHeight-1],[0,newHeight-1]])
 
 	H = cv2.getPerspectiveTransform(pts,newPoints)
-	warped = cv2.warpPerspective(image,H,(newWidth,newHeight))
+	warped_img = cv2.warpPerspective(image,H,(newWidth,newHeight))
 
-	return warped,H
+	return warped_img
