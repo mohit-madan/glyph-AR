@@ -23,6 +23,7 @@
 *.tar
 *.zip
 *.bin
+*.pyc
 
 # Logs and databases #
 ######################
