@@ -21,8 +21,12 @@ def superimpose_image(image, substitute_image, dst):
     newHeight = int(max(h1,h2))
     newWidth = int(max(w1,w2))
 
-    # resize to distorted topdown view
+    # resize to distorted topdown view + 1 transparent channel
     substitute_image = cv2.resize(substitute_image,(newWidth,newHeight))
+    transp_image = np.zeros((newHeight,newWidth,4),np.uint8)
+    transp_image[:,:,3] = 255
+    transp_image[:,:,0:3] = substitute_image
+
 
     # get position where to substitute in original image
     min_x = min(int(tl[0]), int(bl[0]))
@@ -44,20 +48,32 @@ def superimpose_image(image, substitute_image, dst):
     src = np.array([[0,0],[newWidth-1,0],[newWidth-1,newHeight-1],[0,newHeight-1]],dtype = "float32")
 
 
-    # prepare output size
-    warped = np.zeros((newHeight,newWidth, 3), np.uint8)
-    warped[:,:,:] = 255
+    # prepare output size + 1 for transparent channel
+    warped = np.zeros((newHeight,newWidth, 4), np.uint8)
+    warped[:,:,0:3] = 255
+    warped[:,:,3] = 0
 
 
     # apply matrix to topdown view
     matrix2 = cv2.getPerspectiveTransform(src,dst)
-    cv2.warpPerspective(substitute_image, matrix2, (newWidth,newHeight), warped, borderMode=cv2.BORDER_TRANSPARENT)
-    # cv2.imshow("warped warped", warped)
+    cv2.warpPerspective(transp_image, matrix2, (newWidth,newHeight), warped, borderMode=cv2.BORDER_TRANSPARENT)
+    cv2.imshow("warped warped", warped)
     # cv2.imshow("topdown substitute",substitute_image)
-    # cv2.waitKey(0)
+    cv2.waitKey(0)
 
 
-    # insert warped substitute into image
-    image[min_y:min_y + newHeight, min_x:min_x + newWidth] = warped
+    # insert warped substitute into image without white border
+
+    # get crop of image with + 1 channel for transparency
+    newImage = np.zeros((newHeight,newWidth,4),np.uint8)
+    newImage[:,:,0:3] = image[min_y:min_y + newHeight, min_x:min_x + newWidth]
+    newImage[:,:,3] = 255
+
+    # get map of pixels that are not border
+    map = warped[:,:,3] > 0
+    # apply map on cropped (same size) part of original image
+    newImage[map] = warped[map]
+    # transfer crop to original size image
+    image[min_y:min_y + newHeight, min_x:min_x + newWidth] = newImage[:,:,0:3]
 
     return None
