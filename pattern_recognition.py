@@ -6,7 +6,7 @@ import cv2
 def return_with_black_pattern(glyph_pattern, black_pattern, glyph_size):
     grid_size = glyph_size + 2
     # black_pattern_in = [0 for x in range(grid_size*grid_size)]
-    black_pattern_in = black_pattern.copy()
+    black_pattern_in = list(black_pattern)
     for i in range(glyph_size):
         position_full = (i+1)*grid_size + 1
         position_glyph = i*glyph_size

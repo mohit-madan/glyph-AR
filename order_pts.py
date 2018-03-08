@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# order points in order: (tl, tr, br, bl)
 def order_pts(pts):
     s = np.sum(pts, axis=1)
     ord_pts = np.zeros((4, 2), dtype="float32")

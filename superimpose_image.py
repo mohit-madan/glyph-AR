@@ -22,22 +22,21 @@ def superimpose_image(image, substitute_image, dst):
     newHeight = int(max(h1, h2))
     newWidth = int(max(w1, w2))
 
+    # get position where to substitute in original image
+    min_x = min(int(tl[0]), int(bl[0]))
+    min_y = min(int(tl[1]), int(tr[1]))
+    max_x = max(int(tr[0]), int(br[0]), int(tl[1]), int(bl[0]))
+    max_y = max(int(bl[1]), int(br[1]), int(tl[1]), int(tr[1]))
+
+    # size of patch to be replaced in original image
+    destHeight = max_y - min_y
+    destWidth = max_x - min_x
+
     # resize to distorted topdown view + 1 transparent channel
     substitute_image = cv2.resize(substitute_image, (newWidth, newHeight))
     transp_image = np.zeros((newHeight, newWidth, 4), np.uint8)
     transp_image[:, :, 3] = 255
     transp_image[:, :, 0:3] = substitute_image
-
-
-    # get position where to substitute in original image
-    min_x = min(int(tl[0]), int(bl[0]))
-    min_y = min(int(tl[1]), int(tr[1]))
-    max_x = max(int(tr[0]), int(br[0]))
-    max_y = max(int(bl[1]), int(br[1]))
-
-    # todo not sure why it works with newHeight/newWidth instead of destHeight/destWidth
-    destHeight = max_y - min_y
-    destWidth = max_x - min_y
 
     # prepare dst and src
     # set dst to zero origin
@@ -49,21 +48,22 @@ def superimpose_image(image, substitute_image, dst):
     src = np.array([[0, 0], [newWidth-1, 0], [newWidth-1, newHeight-1], [0, newHeight-1]], dtype="float32")
 
     # prepare output size + 1 for transparent channel
-    warped = np.zeros((newHeight, newWidth, 4), np.uint8)
+    warped = np.zeros((destHeight, destWidth, 4), np.uint8)
     warped[:, :, 0:3] = 255
     warped[:, :, 3] = 0
 
     # apply matrix to topdown view
     matrix2 = cv2.getPerspectiveTransform(src, dst)
-    cv2.warpPerspective(transp_image, matrix2, (newWidth, newHeight), warped, borderMode=cv2.BORDER_TRANSPARENT)
+    cv2.warpPerspective(transp_image, matrix2, (destWidth, destHeight), warped, borderMode=cv2.BORDER_TRANSPARENT)
     # cv2.imshow("warped warped", warped)
+    warped.resize(destHeight, destWidth, 4)
     # cv2.imshow("topdown substitute",substitute_image)
     # cv2.waitKey(0)
 
     # insert warped substitute into image without white border
     # get crop of image with + 1 channel for transparency
-    newImage = np.zeros((newHeight, newWidth, 4), np.uint8)
-    newImage[:, :, 0:3] = image[min_y:min_y + newHeight, min_x:min_x + newWidth]
+    newImage = np.zeros((destHeight, destWidth, 4), np.uint8)
+    newImage[:, :, 0:3] = image[min_y:min_y + destHeight, min_x:min_x + destWidth]
     newImage[:, :, 3] = 255
 
     # get map of pixels that are not border
@@ -71,6 +71,6 @@ def superimpose_image(image, substitute_image, dst):
     # apply map on cropped (same size) part of original image
     newImage[transp_map] = warped[transp_map]
     # transfer crop to original size image
-    image[min_y:min_y + newHeight, min_x:min_x + newWidth] = newImage[:, :, 0:3]
+    image[min_y:min_y + destHeight, min_x:min_x + destWidth] = newImage[:, :, 0:3]
 
     return None

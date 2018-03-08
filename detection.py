@@ -2,7 +2,7 @@ import cv2
 from extractMatrix import extractMatrix
 from superimpose_image import superimpose_image
 from pattern_recognition import pattern_recognition
-from order_pts import check_if_rect
+from order_pts import check_if_rect, order_pts
 
 i = 0
 cam = cv2.VideoCapture(0)
@@ -36,7 +36,7 @@ while True:
         vert_num = len(approx)
         if vert_num == 4:
             approx = approx.reshape(4, 2)
-            (tl, tr, br, bl) = approx
+            (tl, tr, br, bl) = order_pts(approx)
             valid = check_if_rect(approx)    
             # valid = False
 
