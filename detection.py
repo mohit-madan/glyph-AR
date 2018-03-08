@@ -50,7 +50,6 @@ def extractMatrix(image,pts):
 
     newPoints = np.array([[0,0],[newWidth-1,0],[newWidth-1,newHeight-1],[0,newHeight-1]],dtype = "float32")
     print(newPoints)
-    print(pts)
     H = cv2.getPerspectiveTransform(pts,newPoints)
     warped_img = cv2.warpPerspective(image,H,(newWidth,newHeight))
 
@@ -93,11 +92,9 @@ while(True):
                 i=i+1   
                 print(i)
                 print(approx)                
-
-            
-            #warped_img , H = extractMatrix(gray,approx)
-            #cv2.imshow("original",gray)
-            #cv2.imshow("transformed",warped_img)
+                warped_img , H = extractMatrix(gray,approx)
+                cv2.imshow("original",gray)
+                cv2.imshow("transformed",warped_img)
             
     
 
