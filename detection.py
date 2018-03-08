@@ -62,7 +62,7 @@ while(True):
     # cnt = contours[0]
     for cnt in contours:
         #We will find if each of the detected contour is of quad shape, then we will do the perspective
-        #transform of the image to get the quad in top down view and then the glyph detction lago will prceed
+        #transform of the image to get the quad in top down view and then the glyph detection algo will proceed
         epsilon = 0.1*cv2.arcLength(cnt,True)
         #approx = cv2.approxPolyDP(cnt,epsilon,True)
         cv2.drawContours(frame, cnt, -1, (0,255,0), 3)

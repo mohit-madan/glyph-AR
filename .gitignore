@@ -39,3 +39,7 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+.idea
+snippet.py
+__pycache__/
