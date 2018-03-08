@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from detection import order_pts
+from order_pts import order_pts
 
 # image: complete screen
 # dst: list of points [x,y] of corners of quadratile
@@ -57,9 +57,9 @@ def superimpose_image(image, substitute_image, dst):
     # apply matrix to topdown view
     matrix2 = cv2.getPerspectiveTransform(src,dst)
     cv2.warpPerspective(transp_image, matrix2, (newWidth,newHeight), warped, borderMode=cv2.BORDER_TRANSPARENT)
-    cv2.imshow("warped warped", warped)
+    # cv2.imshow("warped warped", warped)
     # cv2.imshow("topdown substitute",substitute_image)
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
 
 
     # insert warped substitute into image without white border

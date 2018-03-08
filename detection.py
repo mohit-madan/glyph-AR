@@ -1,21 +1,13 @@
 import numpy as np
 #import extractMatrix
-import order_pts
+from order_pts import order_pts
 import cv2
+from superimpose_image import superimpose_image
+from pattern_recognition import pattern_recognition
 i=0
 
 cam = cv2.VideoCapture(0)
 
-def order_pts(pts):
-    s = np.sum(pts,axis = 1)
-    ord_pts = np.zeros((4,2), dtype = "float32")
-    ord_pts[0] = pts[np.argmin(s)]
-    ord_pts[2] = pts[np.argmax(s)]
-
-    diff = np.diff(pts,axis = 1)
-    ord_pts[1] = pts[np.argmin(diff)]
-    ord_pts[3] = pts[np.argmax(diff)]
-    return ord_pts
 
 def check_if_rect(pts):
     (tl,tr,br,bl) = pts
@@ -95,6 +87,19 @@ while(True):
                 warped_img , H = extractMatrix(gray,approx)
                 cv2.imshow("original",gray)
                 cv2.imshow("transformed",warped_img)
+
+                idx = pattern_recognition(warped_img)
+
+                if idx == 0:
+                    substitute_image = cv2.imread('data/tree2.jpg',1)
+                    superimpose_image(frame,substitute_image,approx)
+                if idx == 1:
+                    substitute_image = cv2.imread('data/mohit.jpeg',1)
+                    superimpose_image(frame,substitute_image,approx)
+
+
+
+
             
     
 
@@ -102,7 +107,7 @@ while(True):
     # if vert==4:
     #   break
     # # Display the resulting frame
-        
+
 
     
 
