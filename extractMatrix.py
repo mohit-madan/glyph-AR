@@ -1,4 +1,4 @@
-def extractMatrix(pts):
+def extractMatrix(image,pts):
 	pts = order_pts(pts)
 	print(pts)
 	(tl,tr,br,bl) = pts
