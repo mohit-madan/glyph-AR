@@ -4,7 +4,7 @@ import order_pts
 import cv2
 i=0
 
-cap = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(0)
 
 def order_pts(pts):
     s = np.sum(pts,axis = 1)
@@ -44,7 +44,7 @@ def extractMatrix(image,pts):
 while(True):
 
     # Capture frame-by-frame
-    ret, frame = cap.read()
+    ret, frame = cam.read()
 
     # Our operations on the frame come here
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -53,32 +53,31 @@ while(True):
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
     gray = clahe.apply(gray) #applying histogram equalisation
     
-    gray = cv2.GaussianBlur(gray, (5,5), 0) #gaussian blur
+    gray = cv2.GaussianBlur(gray, (5,5), 0) #gaussian blur-to smoothen out random edges 
     gray_edge = cv2.Canny(gray,100,300) #applying canny edge detection
 
     im2, contours, _ = cv2.findContours(gray_edge, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  #finding contours
-        
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10] #sorting contours in reverse order - why? don't know    
     #approxiamating contours 
-    # cnt = contours[0]
+
     for cnt in contours:
         #We will find if each of the detected contour is of quad shape, then we will do the perspective
         #transform of the image to get the quad in top down view and then the glyph detection algo will proceed
-        epsilon = 0.1*cv2.arcLength(cnt,True)
-        #approx = cv2.approxPolyDP(cnt,epsilon,True)
-        cv2.drawContours(frame, cnt, -1, (0,255,0), 3)
-        #cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
+        epsilon = cv2.arcLength(cnt,True)
+        approx = cv2.approxPolyDP(cnt,0.01*epsilon,True) #with greater percentage a large set is coming
+        #cv2.drawContours(frame, cnt, -1, (0,255,0), 3)
+        cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
+
         cv2.imshow('frame',frame)
-        vert = len(cnt)
-        if vert ==4:
-            approx = cnt
-            print(vert)
+        vert_num = len(approx)
+        if vert_num ==4:
             i=i+1   
             print(i)
             approx = approx.reshape(4,2)
             print(approx)
-            warped_img , H = extractMatrix(gray,approx)
-            cv2.imshow("original",gray)
-            cv2.imshow("transformed",warped_img)
+            #warped_img , H = extractMatrix(gray,approx)
+            #cv2.imshow("original",gray)
+            #cv2.imshow("transformed",warped_img)
             
     
 
@@ -95,7 +94,7 @@ while(True):
         break
 
 # When everything done, release the capture
-cap.release()
+cam.release()
 cv2.destroyAllWindows()
 
 
