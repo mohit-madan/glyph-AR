@@ -50,15 +50,13 @@ def extractMatrix(image,pts):
 
     newPoints = np.array([[0,0],[newWidth-1,0],[newWidth-1,newHeight-1],[0,newHeight-1]],dtype = "float32")
     print(newPoints)
-    print(pts)
     H = cv2.getPerspectiveTransform(pts,newPoints)
     warped_img = cv2.warpPerspective(image,H,(newWidth,newHeight))
 
     return warped_img,H
 
 while(True):
-
-    # Capture frame-by-frame
+    #### Capture frame-by-frame
     ret, frame = cam.read()
 
     # Our operations on the frame come here
@@ -77,29 +75,26 @@ while(True):
 
     for cnt in contours:
         #We will find if each of the detected contour is of quad shape, then we will do the perspective
-        #transform of the image to get the quad in top down view and then the glyph detection algo will proceed
+        #transform of the image to get the quad in top down view and then the glyph detction lago will prceed
         epsilon = cv2.arcLength(cnt,True)
         approx = cv2.approxPolyDP(cnt,0.01*epsilon,True) #with greater percentage a large set is coming
         cv2.drawContours(frame, cnt, -1, (0,255,0), 3)
         cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
-
         cv2.imshow('frame',frame)
         vert_num = len(approx)
         if vert_num ==4:
             approx = approx.reshape(4,2)
             (tl,tr,br,bl) = approx
             valid = check_if_rect(approx)    
-            valid = False
+           # valid = False
 
             if valid:
                 i=i+1   
                 print(i)
                 print(approx)                
-
-            
-            #warped_img , H = extractMatrix(gray,approx)
-            #cv2.imshow("original",gray)
-            #cv2.imshow("transformed",warped_img)
+                warped_img , H = extractMatrix(gray,approx)
+                cv2.imshow("original",gray)
+                cv2.imshow("transformed",warped_img)
             
     
 
