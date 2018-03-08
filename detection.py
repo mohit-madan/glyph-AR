@@ -17,6 +17,21 @@ def order_pts(pts):
     ord_pts[3] = pts[np.argmax(diff)]
     return ord_pts
 
+def check_if_rect(pts):
+    (tl,tr,br,bl) = pts
+    check=True
+
+    if (np.abs(tl[1] - tr[1]) + np.abs(tl[0] - tr[0])) <5 :
+        check = False
+    if (np.abs(tl[1] - br[1]) + np.abs(tl[0] - br[0])) <5 :
+        check = False
+    if (np.abs(tl[1] - bl[1]) + np.abs(tl[0] - bl[0])) <5 :
+        check = False
+    if (np.abs(tr[1] - bl[1]) + np.abs(tr[0] - bl[0])) <5 :
+        check = False
+
+    return check
+
 def extractMatrix(image,pts):
     pts = order_pts(pts)
     print(pts)
@@ -53,9 +68,9 @@ while(True):
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
     gray = clahe.apply(gray) #applying histogram equalisation
     
-    gray = cv2.GaussianBlur(gray, (5,5), 0) #gaussian blur-to smoothen out random edges 
-    gray_edge = cv2.Canny(gray,100,300) #applying canny edge detection
-
+    gray = cv2.GaussianBlur(gray, (5,5), 1) #gaussian blur-to smoothen out random edges 
+    gray_edge = cv2.Canny(gray,100,200) #applying canny edge detection
+    cv2.imshow("jf",gray_edge)
     im2, contours, _ = cv2.findContours(gray_edge, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  #finding contours
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10] #sorting contours in reverse order - why? don't know    
     #approxiamating contours 
@@ -65,15 +80,22 @@ while(True):
         #transform of the image to get the quad in top down view and then the glyph detction lago will prceed
         epsilon = cv2.arcLength(cnt,True)
         approx = cv2.approxPolyDP(cnt,0.01*epsilon,True) #with greater percentage a large set is coming
-        #cv2.drawContours(frame, cnt, -1, (0,255,0), 3)
+        cv2.drawContours(frame, cnt, -1, (0,255,0), 3)
         cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
         cv2.imshow('frame',frame)
         vert_num = len(approx)
         if vert_num ==4:
-            i=i+1   
-            print(i)
             approx = approx.reshape(4,2)
-            print(approx)
+            (tl,tr,br,bl) = approx
+            valid = check_if_rect(approx)    
+            valid = False
+
+            if valid:
+                i=i+1   
+                print(i)
+                print(approx)                
+
+            
             #warped_img , H = extractMatrix(gray,approx)
             #cv2.imshow("original",gray)
             #cv2.imshow("transformed",warped_img)
