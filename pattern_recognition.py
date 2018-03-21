@@ -86,8 +86,8 @@ def pattern_recognition(image):
         if glyphs_black[i] == glyph_pattern:
             glyph_found = True
             glyph_idx = i//4
-            print('Found matching glyph!')
-            print(glyph_idx)
+            # print('Found matching glyph!')
+            # print(glyph_idx)
             break
 
     if glyph_found:

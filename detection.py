@@ -38,12 +38,12 @@ while True:
             approx = approx.reshape(4, 2)
             (tl, tr, br, bl) = order_pts(approx)
             valid = check_if_rect(approx)    
-            # valid = False
+            # valid = qFalse
 
             if valid:
                 i += 1
-                print(i)
-                print(approx)                
+                # print(i)
+                # print(approx)
                 warped_img, H = extractMatrix(gray, approx)
                 cv2.imshow("original", gray)
                 cv2.imshow("transformed", warped_img)
