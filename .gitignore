@@ -42,5 +42,6 @@ ehthumbs.db
 Thumbs.db
 
 .idea
-snippet.py
+snippet*
 __pycache__/
+*.pyc

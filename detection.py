@@ -56,6 +56,7 @@ while True:
                 if idx == 1:
                     substitute_image = cv2.imread('data/mohit.jpeg',1)
                     superimpose_image(frame, substitute_image, approx)
+                # print(idx)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

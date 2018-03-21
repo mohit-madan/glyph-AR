@@ -32,9 +32,12 @@ def superimpose_image(image, substitute_image, dst):
     destHeight = max_y - min_y
     destWidth = max_x - min_x
 
+    subst_width = newWidth
+    subst_height = newHeight
+
     # resize to distorted topdown view + 1 transparent channel
-    substitute_image = cv2.resize(substitute_image, (newWidth, newHeight))
-    transp_image = np.zeros((newHeight, newWidth, 4), np.uint8)
+    substitute_image = cv2.resize(substitute_image, (subst_width, subst_height))
+    transp_image = np.zeros((subst_height, subst_width, 4), np.uint8)
     transp_image[:, :, 3] = 255
     transp_image[:, :, 0:3] = substitute_image
 
@@ -45,7 +48,7 @@ def superimpose_image(image, substitute_image, dst):
         el[1] = el[1] - min_y
 
     # get topdown view as src
-    src = np.array([[0, 0], [newWidth-1, 0], [newWidth-1, newHeight-1], [0, newHeight-1]], dtype="float32")
+    src = np.array([[0, 0], [subst_width-1, 0], [subst_width-1, subst_height-1], [0, subst_height-1]], dtype="float32")
 
     # prepare output size + 1 for transparent channel
     warped = np.zeros((destHeight, destWidth, 4), np.uint8)
