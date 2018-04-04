@@ -11,17 +11,23 @@ tested with:
 """
 from __future__ import print_function
 import sys
-from vtk import (
-    vtkJPEGReader, vtkImageCanvasSource2D, vtkImageActor, vtkPolyDataMapper,
-    vtkRenderer, vtkRenderWindow, vtkRenderWindowInteractor, vtkSuperquadricSource,
-    vtkActor, VTK_MAJOR_VERSION
-)
+# from vtk import (
+#     vtkJPEGReader, vtkImageCanvasSource2D, vtkImageActor, vtkPolyDataMapper,
+#     vtkRenderer, vtkRenderWindow, vtkRenderWindowInteractor, vtkSuperquadricSource,
+#     vtkActor, VTK_MAJOR_VERSION
+# )
+from vtk import *
+import cv2
+
+
 
 def main(argv):
+    cam = cv2.VideoCapture(0)
+
     #  Verify input arguments
     if True:
         # Read the image
-        path = 'background.jpg'
+        path = 'webcam0.jpg'
         jpeg_reader = vtkJPEGReader()
         if not jpeg_reader.CanReadFile(path):
             print("Error reading file %s" % path)
@@ -55,21 +61,54 @@ def main(argv):
     # Create a renderer to display the image in the background
     background_renderer = vtkRenderer()
 
+    # Read .obj
+    file_name = 'data/3d_tree/3d_tree.obj'
+    reader = vtk.vtkOBJReader()
+    reader.SetFileName(file_name)
+    reader.Update()
+    poly_data = reader.GetOutput()
+
+    # make transfor for translate
+    aLabelTransform = vtk.vtkTransform()
+    aLabelTransform.Identity()
+    aLabelTransform.Translate(-0.2, 0, 1.25)
+
+    labelTransform = vtk.vtkTransformPolyDataFilter()
+    labelTransform.SetTransform(aLabelTransform)
+    labelTransform.SetInputData(poly_data)
+
+    modelMapper = vtk.vtkPolyDataMapper()
+    modelMapper.SetInputConnection(labelTransform.GetOutputPort())
+
+    modelActor = vtk.vtkActor()
+    modelActor.SetMapper(modelMapper)
+    modelActor.RotateX(30)
+    modelActor.RotateY(70)
+    modelActor.RotateZ(100)
+
+
     # Create a superquadric
     superquadric_source = vtkSuperquadricSource()
     superquadric_source.SetPhiRoundness(1.1)
     superquadric_source.SetThetaRoundness(.2)
 
+
     # Create a mapper and actor
-    superquadric_mapper = vtkPolyDataMapper()
+    superquadric_mapper = vtk.vtkPolyDataMapper()
     superquadric_mapper.SetInputConnection(superquadric_source.GetOutputPort())
 
     superquadric_actor = vtkActor()
     superquadric_actor.SetMapper(superquadric_mapper)
+    superquadric_actor.RotateX(30)
+    superquadric_actor.RotateY(70)
+    superquadric_actor.RotateZ(100)
+    # superquadric_actor.AddPosition(5, 0, 0)
+
 
     scene_renderer = vtkRenderer()
 
     render_window = vtkRenderWindow()
+    render_window.SetSize(640, 480)
 
     # Set up the render window and renderers such that there is
     # a background layer and a foreground layer
@@ -85,6 +124,7 @@ def main(argv):
 
     # Add actors to the renderers
     scene_renderer.AddActor(superquadric_actor)
+    scene_renderer.AddActor(modelActor)
     background_renderer.AddActor(image_actor)
 
     # Render once to figure out where the background camera will be
@@ -110,7 +150,28 @@ def main(argv):
     # Render again to set the correct view
     render_window.Render()
 
-    # Interact with the window
+    for i in range(200):
+        ret, frame = cam.read()
+        cv2.imwrite('webcam.jpg',frame)
+        # Read the image
+        path = 'webcam.jpg'
+        jpeg_reader = vtkJPEGReader()
+        if not jpeg_reader.CanReadFile(path):
+            print("Error reading file %s" % path)
+            return
+
+        jpeg_reader.SetFileName(path)
+        jpeg_reader.Update()
+        image_data = jpeg_reader.GetOutput()
+        if VTK_MAJOR_VERSION <= 5:
+            image_actor.SetInput(image_data)
+        else:
+            image_actor.SetInputData(image_data)
+        modelActor.SetPosition(0, i/100, 0)
+        modelActor.RotateX(3)
+        render_window.Render()
+
+    # Interact with the window / keeps window open otherwise closes after loop is finished
     render_window_interactor.Start()
 
 

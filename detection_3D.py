@@ -1,6 +1,5 @@
 import cv2
 from extractMatrix import extractMatrix
-from superimpose_image import superimpose_image
 from pattern_recognition import pattern_recognition
 from order_pts import check_if_rect, order_pts
 
@@ -8,10 +7,10 @@ i = 0
 cam = cv2.VideoCapture(0)
 
 
-while True:
+def capture():
     # Capture frame-by-frame
     ret, frame = cam.read()
-    #cv2.imwrite('webcam{}.png'.format(pic),frame)
+    cv2.imwrite('webcam.jpg',frame)
     # print(frame.shape[1], frame.shape[0])
 
     # Our operations on the frame come here
@@ -28,6 +27,8 @@ while True:
     im2, contours, _ = cv2.findContours(gray_edge, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # finding contours
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]  # sorting contours in reverse order - why? don't know
     # approximating contours
+
+    idx = None
 
     for cnt in contours:
         # We will find if each of the detected contour is of quad shape, then we will do the perspective
@@ -54,17 +55,12 @@ while True:
 
                 idx = pattern_recognition(warped_img)
 
-                if idx == 0:
-                    substitute_image = cv2.imread('data/tree2.jpg',1)
-                    superimpose_image(frame, substitute_image, approx)
-                if idx == 1:
-                    substitute_image = cv2.imread('data/mohit.jpeg',1)
-                    superimpose_image(frame, substitute_image, approx)
-
                 # print(idx)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    return frame, idx, approx
+    #
+    # if cv2.waitKey(1) & 0xFF == ord('q'):
+    #     break
 
 # When everything done, release the capture
 cam.release()
