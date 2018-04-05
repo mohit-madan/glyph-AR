@@ -18,6 +18,7 @@ import sys
 # )
 from vtk import *
 import cv2
+from detection_3D import capture
 
 
 
@@ -69,22 +70,23 @@ def main(argv):
     poly_data = reader.GetOutput()
 
     # make transfor for translate
-    aLabelTransform = vtk.vtkTransform()
-    aLabelTransform.Identity()
-    aLabelTransform.Translate(-0.2, 0, 1.25)
-
-    labelTransform = vtk.vtkTransformPolyDataFilter()
-    labelTransform.SetTransform(aLabelTransform)
-    labelTransform.SetInputData(poly_data)
+    # aLabelTransform = vtk.vtkTransform()
+    # aLabelTransform.Identity()
+    # aLabelTransform.Translate(-0.2, 0, 1.25)
+    #
+    # labelTransform = vtk.vtkTransformPolyDataFilter()
+    # labelTransform.SetTransform(aLabelTransform)
+    # labelTransform.SetInputData(poly_data)
 
     modelMapper = vtk.vtkPolyDataMapper()
-    modelMapper.SetInputConnection(labelTransform.GetOutputPort())
+    modelMapper.SetInputData(poly_data)
 
     modelActor = vtk.vtkActor()
     modelActor.SetMapper(modelMapper)
-    modelActor.RotateX(30)
-    modelActor.RotateY(70)
-    modelActor.RotateZ(100)
+    modelActor.SetPosition(0, 0, -100)
+    # modelActor.RotateX(30)
+    # modelActor.RotateY(70)
+    # modelActor.RotateZ(100)
 
 
     # Create a superquadric
@@ -123,7 +125,7 @@ def main(argv):
     render_window_interactor.SetRenderWindow(render_window)
 
     # Add actors to the renderers
-    scene_renderer.AddActor(superquadric_actor)
+    # scene_renderer.AddActor(superquadric_actor)
     scene_renderer.AddActor(modelActor)
     background_renderer.AddActor(image_actor)
 
@@ -138,6 +140,9 @@ def main(argv):
     camera = background_renderer.GetActiveCamera()
     camera.ParallelProjectionOn()
 
+    scn_camera = scene_renderer.GetActiveCamera()
+    # scn_camera.ParallelProjectionOn()
+
     xc = origin[0] + 0.5*(extent[0] + extent[1]) * spacing[0]
     yc = origin[1] + 0.5*(extent[2] + extent[3]) * spacing[1]
     # xd = (extent[1] - extent[0] + 1) * spacing[0]
@@ -147,13 +152,27 @@ def main(argv):
     camera.SetFocalPoint(xc, yc, 0.0)
     camera.SetPosition(xc, yc, d)
 
+
+
     # Render again to set the correct view
     render_window.Render()
 
-    for i in range(200):
+    while True:
         ret, frame = cam.read()
         cv2.imwrite('webcam.jpg',frame)
-        # Read the image
+
+        idx, approx = capture(frame)
+        if idx == 0:
+            print(idx, approx)
+            # scene_renderer.AddActor(modelActor)
+            modelActor.AddPosition(0.1, 0, 0)
+        elif idx == 1:
+            print(idx, approx)
+            # scene_renderer.AddActor(modelActor)
+            modelActor.AddPosition(-0.1, 0, 0)
+
+
+        # Read the image to background
         path = 'webcam.jpg'
         jpeg_reader = vtkJPEGReader()
         if not jpeg_reader.CanReadFile(path):
@@ -167,9 +186,9 @@ def main(argv):
             image_actor.SetInput(image_data)
         else:
             image_actor.SetInputData(image_data)
-        modelActor.SetPosition(0, i/100, 0)
-        modelActor.RotateX(3)
+
         render_window.Render()
+
 
     # Interact with the window / keeps window open otherwise closes after loop is finished
     render_window_interactor.Start()
