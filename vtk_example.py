@@ -24,11 +24,13 @@ from detection_3D import capture
 
 def main(argv):
     cam = cv2.VideoCapture(0)
+    ret, frame = cam.read()
+    cv2.imwrite('webcam.jpg',frame)
 
     #  Verify input arguments
     if True:
         # Read the image
-        path = 'webcam0.jpg'
+        path = 'webcam.jpg'
         jpeg_reader = vtkJPEGReader()
         if not jpeg_reader.CanReadFile(path):
             print("Error reading file %s" % path)
