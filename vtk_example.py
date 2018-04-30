@@ -28,6 +28,21 @@ def draw(img, corner, imgpts):
     img = cv2.line(img, corner, tuple(imgpts[2].ravel()), (0, 0, 255), 5)
     return img
 
+def draw_cage(img, corner, imgpts):
+    imgpts = np.int32(imgpts).reshape(-1,2)
+
+    # draw ground floor in green
+    img = cv2.drawContours(img, [imgpts[:4]],-1,(0,255,0),-3)
+
+    # draw pillars in blue color
+    for i,j in zip(range(4),range(4,8)):
+        img = cv2.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(255),3)
+
+    # draw top layer in red color
+    img = cv2.drawContours(img, [imgpts[4:]],-1,(0,0,255),-3)
+
+    return img
+
 
 def get_vectors(image, points, mtx, dist):
 
@@ -54,8 +69,8 @@ def get_vectors(image, points, mtx, dist):
 def main(argv):
 
     # axis to be displayed on glyph
-    axis = np.float32([[3, 0, 0], [0, 3, 0], [0, 0, -3]]).reshape(-1, 3)
-    # load calibration data
+    axis = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
+                   [0,0,-1],[0,1,-1],[1,1,-1],[1,0,-1] ])    # load calibration data
     with np.load('camcalib.npz') as X:
         mtx, dist, _, _ = [X[i] for i in ('mtx', 'dist', 'rvecs', 'tvecs')]
 
@@ -106,12 +121,11 @@ def main(argv):
     modelMapper = vtk.vtkPolyDataMapper()
     modelMapper.SetInputData(poly_data)
 
-    modelActor = vtk.vtkActor()
-    modelActor.SetMapper(modelMapper)
-    modelActor.SetPosition(0, 0, -100)
-    # modelActor.RotateX(30)
-    # modelActor.RotateY(70)
-    # modelActor.RotateZ(100)
+    CubeActor = vtk.vtkActor()
+    CubeActor.SetMapper(modelMapper)
+    # CubeActor.RotateX(30)
+    # CubeActor.RotateY(70)
+    # CubeActor.RotateZ(100)
 
 
     # Create a superquadric
@@ -151,11 +165,12 @@ def main(argv):
 
     # Add actors to the renderers
     # scene_renderer.AddActor(superquadric_actor)
-    # scene_renderer.AddActor(modelActor)
     background_renderer.AddActor(image_actor)
+    # scene_renderer.AddActor(CubeActor)
 
     # Render once to figure out where the background camera will be
     render_window.Render()
+
 
     # Set up the background camera to fill the renderer with the image
     origin = image_data.GetOrigin()
@@ -179,8 +194,11 @@ def main(argv):
 
 
 
+
+
     # Render again to set the correct view
     render_window.Render()
+
     count = 0
 
     while True:
@@ -194,19 +212,19 @@ def main(argv):
             count = 10;
 
         if count > 0:
-            frame = draw(frame, tl, imgpts)
+            frame = draw_cage(frame,tl, imgpts)
             count -= 1;
 
         cv2.imwrite('webcam.jpg', frame)
 
         # if idx == 0:
         #     print(idx, approx)
-        #     # scene_renderer.AddActor(modelActor)
-        #     modelActor.AddPosition(0.1, 0, 0)
+        #     # scene_renderer.AddActor(CubeActor)
+        #     CubeActor.AddPosition(0.1, 0, 0)
         # elif idx == 1:
         #     print(idx, approx)
-        #     # scene_renderer.AddActor(modelActor)
-        #     modelActor.AddPosition(-0.1, 0, 0)
+        #     # scene_renderer.AddActor(CubeActor)
+        #     CubeActor.AddPosition(-0.1, 0, 0)
 
 
         # Read the image to background
