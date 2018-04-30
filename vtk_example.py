@@ -19,39 +19,63 @@ import sys
 from vtk import *
 import cv2
 from detection_3D import capture
+import numpy as np
+from order_pts import order_pts
 
+def draw(img, corner, imgpts):
+    corner = tuple(corner)
+    img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255, 0, 0), 5)
+    img = cv2.line(img, corner, tuple(imgpts[1].ravel()), (0, 255, 0), 5)
+    img = cv2.line(img, corner, tuple(imgpts[2].ravel()), (0, 0, 255), 5)
+    return img
+
+
+def get_vectors(image, points, mtx, dist):
+
+    # order points
+    points = order_pts(points)
+
+    # set up criteria, image, points and axis
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    imgp = np.array(points, dtype="float32")
+
+    objp = np.array([[0.,0.,0.],[1.,0.,0.],
+                        [1.,1.,0.],[0.,1.,0.]], dtype="float32")
+
+    # calculate rotation and translation vectors
+    imgp = cv2.cornerSubPix(gray,imgp,(11,11),(-1,-1),criteria)
+    rvecs, tvecs, _ = cv2.solvePnPRansac(objp, imgp, mtx, dist)
+
+    return rvecs, tvecs
 
 
 def main(argv):
+
+    # axis to be displayed on glyph
+    axis = np.float32([[3, 0, 0], [0, 3, 0], [0, 0, -3]]).reshape(-1, 3)
+    # load calibration data
+    with np.load('camcalib.npz') as X:
+        mtx, dist, _, _ = [X[i] for i in ('mtx', 'dist', 'rvecs', 'tvecs')]
+
     cam = cv2.VideoCapture(0)
     ret, frame = cam.read()
-    cv2.imwrite('webcam.jpg',frame)
+    cv2.imwrite('webcam.jpg', frame)
 
     #  Verify input arguments
-    if True:
-        # Read the image
-        path = 'webcam.jpg'
-        jpeg_reader = vtkJPEGReader()
-        if not jpeg_reader.CanReadFile(path):
-            print("Error reading file %s" % path)
-            return
+    # Read the image
+    path = 'webcam.jpg'
+    jpeg_reader = vtkJPEGReader()
+    if not jpeg_reader.CanReadFile(path):
+        print("Error reading file %s" % path)
+        return
 
-        jpeg_reader.SetFileName(path)
-        jpeg_reader.Update()
-        image_data = jpeg_reader.GetOutput()
-    else:
-        canvas_source = vtkImageCanvasSource2D()
-        canvas_source.SetExtent(0, 100, 0, 100, 0, 0)
-        canvas_source.SetScalarTypeToUnsignedChar()
-        canvas_source.SetNumberOfScalarComponents(3)
-        canvas_source.SetDrawColor(127, 127, 100)
-        canvas_source.FillBox(0, 100, 0, 100)
-        canvas_source.SetDrawColor(100, 255, 255)
-        canvas_source.FillTriangle(10, 10, 25, 10, 25, 25)
-        canvas_source.SetDrawColor(255, 100, 255)
-        canvas_source.FillTube(75, 75, 0, 75, 5.0)
-        canvas_source.Update()
-        image_data = canvas_source.GetOutput()
+    jpeg_reader.SetFileName(path)
+    jpeg_reader.Update()
+    image_data = jpeg_reader.GetOutput()
+
 
     # Create an image actor to display the image
     image_actor = vtkImageActor()
@@ -128,7 +152,7 @@ def main(argv):
 
     # Add actors to the renderers
     # scene_renderer.AddActor(superquadric_actor)
-    scene_renderer.AddActor(modelActor)
+    # scene_renderer.AddActor(modelActor)
     background_renderer.AddActor(image_actor)
 
     # Render once to figure out where the background camera will be
@@ -151,8 +175,8 @@ def main(argv):
     yd = (extent[3] - extent[2] + 1) * spacing[1]
     d = camera.GetDistance()
     camera.SetParallelScale(0.5 * yd)
-    camera.SetFocalPoint(xc, yc, 0.0)
-    camera.SetPosition(xc, yc, d)
+    # camera.SetFocalPoint(xc, yc, 0.0)
+    # camera.SetPosition(xc, yc, d)
 
 
 
@@ -161,9 +185,15 @@ def main(argv):
 
     while True:
         ret, frame = cam.read()
-        cv2.imwrite('webcam.jpg',frame)
 
         idx, approx = capture(frame)
+        if idx == 0 or idx == 1:
+            (tl, tr, br, bl) = order_pts(approx)
+            rvecs, tvecs = get_vectors(frame, approx, mtx, dist)
+            imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
+            frame = draw(frame, bl, imgpts)
+        cv2.imwrite('webcam.jpg', frame)
+
         if idx == 0:
             print(idx, approx)
             # scene_renderer.AddActor(modelActor)

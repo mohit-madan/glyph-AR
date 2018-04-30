@@ -16,7 +16,7 @@ def get_vectors(image, points):
     points = order_pts(points)
 
     # load calibration data
-    with np.load('webcam_calibration_ouput.npz') as X:
+    with np.load('camcalib.npz') as X:
         mtx, dist, _, _ = [X[i] for i in ('mtx','dist','rvecs','tvecs')]
 
     # set up criteria, image, points and axis

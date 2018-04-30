@@ -21,6 +21,8 @@ def capture(frame):
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]  # sorting contours in reverse order - why? don't know
     # approximating contours
 
+    idx = None
+    approx = None
     for cnt in contours:
         idx = None
         # We will find if each of the detected contour is of quad shape, then we will do the perspective
