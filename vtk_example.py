@@ -181,6 +181,7 @@ def main(argv):
 
     # Render again to set the correct view
     render_window.Render()
+    count = 0
 
     while True:
         ret, frame = cam.read()
@@ -190,7 +191,12 @@ def main(argv):
             (tl, tr, br, bl) = order_pts(approx)
             rvecs, tvecs = get_vectors(frame, approx, mtx, dist)
             imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
+            count = 10;
+
+        if count > 0:
             frame = draw(frame, tl, imgpts)
+            count -= 1;
+
         cv2.imwrite('webcam.jpg', frame)
 
         # if idx == 0:
