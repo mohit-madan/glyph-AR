@@ -21,7 +21,6 @@ import cv2
 from detection_3D import capture
 import numpy as np
 from order_pts import order_pts
-
 def draw(img, corner, imgpts):
     corner = tuple(corner)
     img = cv2.line(img, corner, tuple(imgpts[0].ravel()), (255, 0, 0), 5)
@@ -47,7 +46,7 @@ def get_vectors(image, points, mtx, dist):
 
     # calculate rotation and translation vectors
     imgp = cv2.cornerSubPix(gray,imgp,(11,11),(-1,-1),criteria)
-    rvecs, tvecs, _ = cv2.solvePnPRansac(objp, imgp, mtx, dist)
+    _, rvecs, tvecs = cv2.solvePnP(objp, imgp, mtx, dist)
 
     return rvecs, tvecs
 
@@ -191,17 +190,17 @@ def main(argv):
             (tl, tr, br, bl) = order_pts(approx)
             rvecs, tvecs = get_vectors(frame, approx, mtx, dist)
             imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
-            frame = draw(frame, bl, imgpts)
+            frame = draw(frame, tl, imgpts)
         cv2.imwrite('webcam.jpg', frame)
 
-        if idx == 0:
-            print(idx, approx)
-            # scene_renderer.AddActor(modelActor)
-            modelActor.AddPosition(0.1, 0, 0)
-        elif idx == 1:
-            print(idx, approx)
-            # scene_renderer.AddActor(modelActor)
-            modelActor.AddPosition(-0.1, 0, 0)
+        # if idx == 0:
+        #     print(idx, approx)
+        #     # scene_renderer.AddActor(modelActor)
+        #     modelActor.AddPosition(0.1, 0, 0)
+        # elif idx == 1:
+        #     print(idx, approx)
+        #     # scene_renderer.AddActor(modelActor)
+        #     modelActor.AddPosition(-0.1, 0, 0)
 
 
         # Read the image to background

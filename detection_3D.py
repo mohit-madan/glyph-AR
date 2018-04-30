@@ -29,8 +29,8 @@ def capture(frame):
         # transform of the image to get the quad in top down view and then the glyph detection algo will proceed
         epsilon = cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, 0.01*epsilon, True)  # with greater percentage a large set is coming
-        cv2.drawContours(frame, cnt, -1, (0, 255, 0), 3)
-        cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
+        # cv2.drawContours(frame, cnt, -1, (0, 255, 0), 3)
+        # cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
         # cv2.imshow('frame', frame)
         vert_num = len(approx)
         if vert_num == 4:
