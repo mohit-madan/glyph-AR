@@ -4,7 +4,7 @@
 #include <opencv2/highgui.hpp>
 #include <iostream>
 #include <cstring>
-#using namespace std;
+using namespace std;
 using namespace cv;
 int main( int argc, char** argv ){
   // show help

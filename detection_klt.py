@@ -12,8 +12,10 @@ if __name__ == '__main__' :
     # Instead of MIL, you can also use
  
     tracker_types = ['BOOSTING', 'MIL','KCF', 'TLD', 'MEDIANFLOW', 'GOTURN']
-    tracker_type = tracker_types[2]
+    tracker_type = tracker_types[1]
  
+    minor_ver = 1
+
     if int(minor_ver) < 3:
         tracker = cv2.Tracker_create(tracker_type)
     else:

@@ -45,8 +45,8 @@ def pattern_recognition(image):
     glyphs[1] = [1, 0, 0, 0, 1, 0, 1, 0, 1]
 
     RESIZE_SIZE = 100
-    BLACK_THRESHOLD = 200
-    BLACK_PERCENT = 0.75
+    BLACK_THRESHOLD = 220
+    BLACK_PERCENT = 0.50
 
     resized_input = cv2.resize(input_glyph, (100, 100))
     grid_size = GLYPH_SIZE + 2
