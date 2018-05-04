@@ -20,6 +20,7 @@ from vtk import *
 import cv2
 from detection_3D import capture
 import numpy as np
+from numpy.linalg import inv
 from order_pts import order_pts
 def draw(img, corner, imgpts):
     corner = tuple(corner)
@@ -39,7 +40,7 @@ def draw_cage(img, corner, imgpts):
         img = cv2.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(255),3)
 
     # draw top layer in red color
-    img = cv2.drawContours(img, [imgpts[4:]],-1,(0,0,255),-3)
+    img = cv2.drawContours(img, [imgpts[4:]],-1,(0,0,255), 3)
 
     return img
 
@@ -68,11 +69,28 @@ def get_vectors(image, points, mtx, dist):
 
 def main(argv):
 
+    width = 640
+    height = 480
+
     # axis to be displayed on glyph
     axis = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
                    [0,0,-1],[0,1,-1],[1,1,-1],[1,0,-1] ])    # load calibration data
     with np.load('camcalib.npz') as X:
         mtx, dist, _, _ = [X[i] for i in ('mtx', 'dist', 'rvecs', 'tvecs')]
+
+    focalLengthY = mtx[1][1]
+    # factor = windowSize.height / ImageSize.height
+    # focalLengthY = focalLengthY * factor
+    viewAngle = 2* np.arctan(height /2 / focalLengthY) * 180 / np.pi
+
+    px = mtx[0][2]
+    py = mtx[1][2]
+    cx = width - px
+    cy = py
+
+    windowCenterX = cx / (width-1)/2 - 1
+    windowCenterY = cy / (height-1)/2 - 1
+
 
     cam = cv2.VideoCapture(0)
     ret, frame = cam.read()
@@ -109,47 +127,17 @@ def main(argv):
     reader.Update()
     poly_data = reader.GetOutput()
 
-    # make transfor for translate
-    # aLabelTransform = vtk.vtkTransform()
-    # aLabelTransform.Identity()
-    # aLabelTransform.Translate(-0.2, 0, 1.25)
-    #
-    # labelTransform = vtk.vtkTransformPolyDataFilter()
-    # labelTransform.SetTransform(aLabelTransform)
-    # labelTransform.SetInputData(poly_data)
-
     modelMapper = vtk.vtkPolyDataMapper()
     modelMapper.SetInputData(poly_data)
 
     CubeActor = vtk.vtkActor()
     CubeActor.SetMapper(modelMapper)
-    # CubeActor.RotateX(30)
-    # CubeActor.RotateY(70)
-    # CubeActor.RotateZ(100)
-
-
-    # Create a superquadric
-    superquadric_source = vtkSuperquadricSource()
-    superquadric_source.SetPhiRoundness(1.1)
-    superquadric_source.SetThetaRoundness(.2)
-
-
-    # Create a mapper and actor
-    superquadric_mapper = vtk.vtkPolyDataMapper()
-    superquadric_mapper.SetInputConnection(superquadric_source.GetOutputPort())
-
-    superquadric_actor = vtkActor()
-    superquadric_actor.SetMapper(superquadric_mapper)
-    superquadric_actor.RotateX(30)
-    superquadric_actor.RotateY(70)
-    superquadric_actor.RotateZ(100)
-    # superquadric_actor.AddPosition(5, 0, 0)
 
 
     scene_renderer = vtkRenderer()
 
     render_window = vtkRenderWindow()
-    render_window.SetSize(640, 480)
+    render_window.SetSize(width, height)
 
     # Set up the render window and renderers such that there is
     # a background layer and a foreground layer
@@ -166,7 +154,7 @@ def main(argv):
     # Add actors to the renderers
     # scene_renderer.AddActor(superquadric_actor)
     background_renderer.AddActor(image_actor)
-    # scene_renderer.AddActor(CubeActor)
+    scene_renderer.AddActor(CubeActor)
 
     # Render once to figure out where the background camera will be
     render_window.Render()
@@ -180,9 +168,6 @@ def main(argv):
     camera = background_renderer.GetActiveCamera()
     camera.ParallelProjectionOn()
 
-    scn_camera = scene_renderer.GetActiveCamera()
-    # scn_camera.ParallelProjectionOn()
-
     xc = origin[0] + 0.5*(extent[0] + extent[1]) * spacing[0]
     yc = origin[1] + 0.5*(extent[2] + extent[3]) * spacing[1]
     # xd = (extent[1] - extent[0] + 1) * spacing[0]
@@ -192,7 +177,9 @@ def main(argv):
     # camera.SetFocalPoint(xc, yc, 0.0)
     # camera.SetPosition(xc, yc, d)
 
-
+    obj_camera = scene_renderer.GetActiveCamera()
+    obj_camera.SetViewAngle(viewAngle)
+    #obj_camera.SetWindowCenter(windowCenterX, windowCenterY)
 
 
 
@@ -209,14 +196,63 @@ def main(argv):
             (tl, tr, br, bl) = order_pts(approx)
             rvecs, tvecs = get_vectors(frame, approx, mtx, dist)
             imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
+
+            rmat, _ = cv2.Rodrigues(rvecs)
+
+            # # method 1
+            # #rmatH = [[0, 0, 0, 0] for x in range(4)]
+            # rmatH = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]], np.float64)
+            # rmatH[0][0:3] = rmat[0][0:3]
+            # rmatH[1][0:3] = rmat[1][0:3]
+            # rmatH[2][0:3] = rmat[2][0:3]
+            # rmatH[0][3] = tvecs[0]
+            # rmatH[1][3] = tvecs[1]
+            # rmatH[2][3] = tvecs[2]
+            #
+            # vtk_camera = obj_camera.GetViewTransformMatrix()
+            # rmatInv = inv(rmatH)
+            # vtk_camera = rmatInv * vtk_camera
+            # obj_camera.ApplyTransform(vtk_camera)
+
+            # method 2
+            # scale matrix??
+            rmat[0][0] *= -1
+            rmat[0][1] *= -1
+            rmat[0][2] *= -1
+            tvec = tvecs.copy()
+            # tvec[0] *= -1
+            # normalize rows??
+
+            rmatINV = rmat.copy()
+            rmatINV = rmatINV.transpose()
+
+            translation = rmatINV.dot(tvec)
+            translation *= -1
+
+            viewPlaneNormal = (rmat[2][0], rmat[2][1], rmat[2][2])
+
+            # defines depth position of cube
+            obj_camera.SetPosition(translation[0], translation[1], translation[2])
+
+            # this line makes the cube vanish
+            # obj_camera.SetFocalPoint(translation[0]-viewPlaneNormal[0], translation[1]-viewPlaneNormal[1],translation[2]-viewPlaneNormal[2])
+            obj_camera.SetFocalPoint(tvec[0], tvec[1], tvec[2])
+
+            obj_camera.SetViewUp(rmat[1][0], rmat[1][1], rmat[1][2])
+
+
+            scene_renderer.ResetCameraClippingRange()
+
             count = 10;
 
+        # Action Nr. 2: Draw cube on image
         if count > 0:
             frame = draw_cage(frame,tl, imgpts)
             count -= 1;
 
         cv2.imwrite('webcam.jpg', frame)
 
+        # Action Nr. 1: translate cube according to glyph
         # if idx == 0:
         #     print(idx, approx)
         #     # scene_renderer.AddActor(CubeActor)
