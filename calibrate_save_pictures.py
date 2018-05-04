@@ -1,3 +1,6 @@
+# http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/py_calibration/py_calibration.html
+# https://rdmilligan.wordpress.com/2015/06/28/opencv-camera-calibration-and-pose-estimation-using-python/
+
 from webcam import Webcam
 import cv2
 from datetime import datetime

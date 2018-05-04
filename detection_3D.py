@@ -15,12 +15,11 @@ def capture(frame):
     
     gray = cv2.GaussianBlur(gray, (5, 5), 1)  # gaussian blur-to smoothen out random edges
     gray_edge = cv2.Canny(gray, 100, 200)  # applying canny edge detection
-    # cv2.imshow("jf", gray_edge)
 
     im2, contours, _ = cv2.findContours(gray_edge, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # finding contours
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]  # sorting contours in reverse order - why? don't know
-    # approximating contours
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]  # sorting contours in reverse order to get biggest one first
 
+    # approximating contours
     idx = None
     approx = None
     for cnt in contours:
@@ -28,23 +27,16 @@ def capture(frame):
         # We will find if each of the detected contour is of quad shape, then we will do the perspective
         # transform of the image to get the quad in top down view and then the glyph detection algo will proceed
         epsilon = cv2.arcLength(cnt, True)
-        approx = cv2.approxPolyDP(cnt, 0.01*epsilon, True)  # with greater percentage a large set is coming
-        # cv2.drawContours(frame, cnt, -1, (0, 255, 0), 3)
-        # cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
-        # cv2.imshow('frame', frame)
+        approx = cv2.approxPolyDP(cnt, 0.01*epsilon, True)  # remove noise along contour, return corners
         vert_num = len(approx)
+        # only consider contours that are quadrilateral
         if vert_num == 4:
             approx = approx.reshape(4, 2)
             (tl, tr, br, bl) = order_pts(approx)
-            valid = check_if_rect(approx)    
-            # valid = qFalse
-
+            valid = check_if_rect(approx)   # reject small rectangles
             if valid:
-                # print(approx)
-                warped_img, H = extractMatrix(gray, approx)
-
+                warped_img, _ = extractMatrix(gray, approx)
                 idx = pattern_recognition(warped_img)
-                # print(idx)
                 break
 
     return idx, approx

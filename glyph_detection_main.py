@@ -20,10 +20,9 @@ from vtk import *
 import cv2
 from detection_3D import capture
 import numpy as np
-from numpy.linalg import inv
 from order_pts import order_pts
 
-ACTIVATE_TOTORO = False
+ACTIVATE_TOTORO = True
 
 
 def draw(img, corner, imgpts):
@@ -227,6 +226,7 @@ def main(argv):
             rmat, _ = cv2.Rodrigues(rvecs)
 
             # method 2
+            # tweaked version of: https://stackoverflow.com/questions/25539898/how-to-apply-the-camera-pose-transformation-computed-using-epnp-to-the-vtk-camer
             rmat[1][0] *= -1
             rmat[1][1] *= -1
             rmat[1][2] *= -1
@@ -244,7 +244,7 @@ def main(argv):
             translation = rmatINV.dot(tvec)
             translation *= -1
 
-            # defines depth position of cube
+            # set camera
             cube_camera.SetPosition(translation[0], translation[1], translation[2])
 
             cube_camera.SetFocalPoint(translation[0][0] - viewPlaneNormal[0], translation[1][0] - viewPlaneNormal[1],
@@ -254,6 +254,7 @@ def main(argv):
 
             cube_renderer.ResetCameraClippingRange()
 
+            # use counter to stabelize projection
             count0 = 10
         # keep cube active to make up for glyph-recognition
         count0 -= 1

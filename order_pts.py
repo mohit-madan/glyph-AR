@@ -14,7 +14,7 @@ def order_pts(pts):
     ord_pts[3] = pts[np.argmax(diff)]
     return ord_pts
 
-
+# reject small rectangles
 def check_if_rect(pts):
     (tl, tr, br, bl) = pts
     check = True
