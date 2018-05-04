@@ -3,11 +3,6 @@
 based on:
  - http://www.vtk.org/Wiki/VTK/Examples/Cxx/Images/BackgroundImage
 
-tested with:
- - VTK 6.3, Python 2.7
- - VTK 7.0, Python 3.5
-
->>> python background_image.py image_filename.jpg
 """
 from __future__ import print_function
 import sys
@@ -22,7 +17,7 @@ from detection_3D import capture
 import numpy as np
 from order_pts import order_pts
 
-ACTIVATE_TOTORO = True
+ACTIVATE_TOTORO = False
 
 
 def draw(img, corner, imgpts):

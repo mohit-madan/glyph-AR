@@ -46,3 +46,6 @@ snippet*
 __pycache__/
 *.pyc
 webcam*
+
+# don't publish totoro_target.obj
+data/totoro_target.obj
