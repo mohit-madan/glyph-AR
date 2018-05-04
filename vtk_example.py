@@ -23,6 +23,8 @@ import numpy as np
 from numpy.linalg import inv
 from order_pts import order_pts
 
+ACTIVATE_TOTORO = False
+
 
 def draw(img, corner, imgpts):
     corner = tuple(corner)
@@ -36,14 +38,14 @@ def draw_cage(img, corner, imgpts):
     imgpts = np.int32(imgpts).reshape(-1, 2)
 
     # draw ground floor in green
-    img = cv2.drawContours(img, [imgpts[:4]], -1, (0, 255, 0), -3)
+    img = cv2.drawContours(img, [imgpts[:4]], -1, (10, 120, 5), -3)
 
     # draw pillars in blue color
     for i, j in zip(range(4), range(4, 8)):
-        img = cv2.line(img, tuple(imgpts[i]), tuple(imgpts[j]), (255), 3)
+        img = cv2.line(img, tuple(imgpts[i]), tuple(imgpts[j]), (255), 1)
 
     # draw top layer in red color
-    img = cv2.drawContours(img, [imgpts[4:]], -1, (0, 0, 255), 3)
+    img = cv2.drawContours(img, [imgpts[4:]], -1, (0, 0, 255), 1)
 
     return img
 
@@ -79,13 +81,6 @@ def main(argv):
     # set focal length
     focalLengthY = mtx[1][1]
     viewAngle = 2 * np.arctan(height / 2 / focalLengthY) * 180 / np.pi
-
-
-    # Object 3: cage_axis to be displayed on glyph
-    cage_axis = np.float32([[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0],
-                            [0, 0, -1], [0, 1, -1], [1, 1, -1], [1, 0, -1]])
-
-
 
     # read first frame
     cam = cv2.VideoCapture(0)
@@ -133,7 +128,15 @@ def main(argv):
 
     # Object 2: Totoro
     # Read .obj
-    file_name = 'data/totoro_target.obj'
+    if ACTIVATE_TOTORO:
+        file_name = 'data/totoro_target.obj'
+        totoro_coord = [[-0.5, 0., -0.5], [0.5, 0., -0.5],
+                  [0.5, 0., 0.5], [-0.5, 0., 0.5]]
+    else:
+        file_name = 'data/3d_tree/3d_tree.obj'
+        totoro_coord = [[-2., -2., 0.], [2., -2., 0.],
+                  [2., 2., 0.], [-2., 2., 0.]]
+
     reader = vtk.vtkOBJReader()
     reader.SetFileName(file_name)
     reader.Update()
@@ -144,13 +147,18 @@ def main(argv):
 
     totoroActor = vtk.vtkActor()
     totoroActor.SetMapper(totoroMapper)
-    totoro_coord = [[-1., -1., 0.], [1., -1., 0.],
-                  [1., 1., 0.], [-1., 1., 0.]]
+
+
+    # Object 3: cage_axis to be displayed on glyph
+    cage_axis = np.float32([[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0],
+                            [0, 0, -1], [0, 1, -1], [1, 1, -1], [1, 0, -1]])
+    cage_coord = [[0., 0., 0.], [1., 0., 0.], [1., 1., 0.],[0., 1., 0.]]
 
 
 
     # create renderer to display objects
-    scene_renderer = vtkRenderer()
+    cube_renderer = vtkRenderer()
+    totoro_renderer = vtkRenderer()
 
     # create render window to combine all renderer
     render_window = vtkRenderWindow()
@@ -160,17 +168,20 @@ def main(argv):
     # a background layer and a foreground layer
     background_renderer.SetLayer(0)
     background_renderer.InteractiveOff()
-    scene_renderer.SetLayer(1)
-    render_window.SetNumberOfLayers(2)
+    cube_renderer.SetLayer(1)
+    totoro_renderer.SetLayer(2)
+    render_window.SetNumberOfLayers(3)
     render_window.AddRenderer(background_renderer)
-    render_window.AddRenderer(scene_renderer)
+    render_window.AddRenderer(cube_renderer)
+    render_window.AddRenderer(totoro_renderer)
 
     render_window_interactor = vtkRenderWindowInteractor()
     render_window_interactor.SetRenderWindow(render_window)
 
     # Add actors to the renderer
     background_renderer.AddActor(image_actor)
-    scene_renderer.AddActor(CubeActor)
+    cube_renderer.AddActor(CubeActor)
+    totoro_renderer.AddActor(totoroActor)
 
     # Render once to figure out where the background camera will be
     render_window.Render()
@@ -191,8 +202,11 @@ def main(argv):
     # camera.SetPosition(xc, yc, d)
 
     # setup object camera according to webcam intrinsics
-    obj_camera = scene_renderer.GetActiveCamera()
-    obj_camera.SetViewAngle(viewAngle)
+    cube_camera = cube_renderer.GetActiveCamera()
+    cube_camera.SetViewAngle(viewAngle)
+    totoro_camera = totoro_renderer.GetActiveCamera()
+    totoro_camera.SetViewAngle(viewAngle)
+
 
     # Render again to set the correct view
     render_window.Render()
@@ -200,13 +214,14 @@ def main(argv):
     # start loop
     count0 = 0
     count1 = 0
+    count2 = 0
     while True:
         ret, frame = cam.read()
 
         idx, approx = capture(frame)
-        
+
         if idx == 0:
-            scene_renderer.AddActor(CubeActor)
+            cube_renderer.AddActor(CubeActor)
             (tl, tr, br, bl) = order_pts(approx)
             rvecs, tvecs = get_vectors(frame, approx, cube_coord, mtx, dist)
             rmat, _ = cv2.Rodrigues(rvecs)
@@ -230,31 +245,75 @@ def main(argv):
             translation *= -1
 
             # defines depth position of cube
-            obj_camera.SetPosition(translation[0], translation[1], translation[2])
+            cube_camera.SetPosition(translation[0], translation[1], translation[2])
 
-            obj_camera.SetFocalPoint(translation[0][0] - viewPlaneNormal[0], translation[1][0] - viewPlaneNormal[1],
+            cube_camera.SetFocalPoint(translation[0][0] - viewPlaneNormal[0], translation[1][0] - viewPlaneNormal[1],
                                      translation[2][0] - viewPlaneNormal[2])
 
-            obj_camera.SetViewUp(rmat[1][0], rmat[1][1], rmat[1][2])
+            cube_camera.SetViewUp(rmat[1][0], rmat[1][1], rmat[1][2])
 
-            scene_renderer.ResetCameraClippingRange()
+            cube_renderer.ResetCameraClippingRange()
 
-            count0 = 10;
+            count0 = 10
+        # keep cube active to make up for glyph-recognition
+        count0 -= 1
+        if count0 <= 0:
+            cube_renderer.RemoveActor(CubeActor)
+
 
         if idx == 1:
+            totoro_renderer.AddActor(totoroActor)
             (tl, tr, br, bl) = order_pts(approx)
-            rvecs, tvecs = get_vectors(frame, approx, cube_coord, mtx, dist)
+            rvecs, tvecs = get_vectors(frame, approx, totoro_coord, mtx, dist)
+            rmat, _ = cv2.Rodrigues(rvecs)
+
+            # method 2
+            rmat[1][0] *= -1
+            rmat[1][1] *= -1
+            rmat[1][2] *= -1
+            rmat[2][0] *= -1
+            rmat[2][1] *= -1
+            rmat[2][2] *= -1
+            tvec = tvecs.copy()
+            tvec[1] *= -1
+            tvec[2] *= -1
+
+            viewPlaneNormal = (rmat[2][0].copy(), rmat[2][1].copy(), rmat[2][2].copy())
+            rmatINV = rmat.copy()
+            rmatINV = rmatINV.transpose()
+
+            translation = rmatINV.dot(tvec)
+            translation *= -1
+
+            # defines depth position of totoro
+            totoro_camera.SetPosition(translation[0], translation[1], translation[2])
+
+            totoro_camera.SetFocalPoint(translation[0][0] - viewPlaneNormal[0], translation[1][0] - viewPlaneNormal[1],
+                                     translation[2][0] - viewPlaneNormal[2])
+
+            totoro_camera.SetViewUp(rmat[1][0], rmat[1][1], rmat[1][2])
+
+            totoro_renderer.ResetCameraClippingRange()
+
+            count2 = 10
+        # keep totoro active to make up for glyph-recognition
+        count2 -= 1
+        if count2 <= 0:
+            totoro_renderer.RemoveActor(totoroActor)
+
+
+
+        # Action Nr. 3: Draw cube on image
+        if idx == 1:
+            (tl, tr, br, bl) = order_pts(approx)
+            rvecs, tvecs = get_vectors(frame, approx, cage_coord, mtx, dist)
             imgpts, jac = cv2.projectPoints(cage_axis, rvecs, tvecs, mtx, dist)
             count1 = 10;
 
-        # Action Nr. 2: Draw cube on image
         if count1 > 0:
             frame = draw_cage(frame, tl, imgpts)
             count1 -= 1
 
-        count0 -= 1
-        if count0 <= 0:
-            scene_renderer.RemoveActor(CubeActor)
 
         cv2.imwrite('webcam.jpg', frame)
 
