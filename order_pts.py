@@ -4,6 +4,7 @@ import numpy as np
 # order points in order: (tl, tr, br, bl)
 def order_pts(pts):
     s = np.sum(pts, axis=1)
+    s2= pts.sum(axis=1)
     ord_pts = np.zeros((4, 2), dtype="float32")
     ord_pts[0] = pts[np.argmin(s)]
     ord_pts[2] = pts[np.argmax(s)]
@@ -13,7 +14,7 @@ def order_pts(pts):
     ord_pts[3] = pts[np.argmax(diff)]
     return ord_pts
 
-
+# reject small rectangles
 def check_if_rect(pts):
     (tl, tr, br, bl) = pts
     check = True
