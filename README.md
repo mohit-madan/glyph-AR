@@ -12,13 +12,13 @@ Our algorithm can be broken down into 3 main parts:-
 3) Most tricky part is to project a 3D object. We imitate the the webcam by extracting its intrinsics using a chess board. We use this camera calibration matrix for finding out the correspondacen between 3D object 2Dimage plane.
 
 # Dependencies Required to Run the Code 
-sudo apt-get install python-vtk
-sudo apt-get install python-pygame
-sudo apt-get install python-opencv
-sudo pip install openpyxl
-pip install opencv-contrib-python
-sudo apt-get install python-pip  
-sudo pip install numpy scipy
+$ sudo apt-get install python-vtk
+$ sudo apt-get install python-pygame
+$ sudo apt-get install python-opencv
+$ sudo pip install openpyxl
+$ pip install opencv-contrib-python
+$ sudo apt-get install python-pip  
+$ sudo pip install numpy scipy
 
 # Running the code
 To run the AR appllication , just type in the terminal "glyph_detection_main.py". Bring various glyphs in front of the camera and try to see the results. The glyph detection part is very sensitive to lighting conditions and hence you may want to ensure proper lights on the glyph.
