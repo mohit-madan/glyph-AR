@@ -1,4 +1,4 @@
-# glyph-AR
+# Glyph-AR
 We have implemented glyph detection for augmented reality applications. We detect glyphs(a playcard, a hieroglyphic symbol) and replace them with a 3D object using VTK and OpenCV. 
 
 # Motivation 
@@ -25,3 +25,4 @@ To run the AR appllication , just type in the terminal "glyph_detection_main.py"
 
 # Results 
 We were able to succesfully implement 3D object overaly over glyphs. One needs to be patient while working with VTK ( Python wrapper for OpenGL). 
+![cube_and_totoro](https://user-images.githubusercontent.com/25552500/39655961-5aaeee86-501a-11e8-8877-7c895729464a.png)
