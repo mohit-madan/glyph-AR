@@ -121,7 +121,8 @@ def main(argv):
     background_renderer = vtkRenderer()
 
     # Read .obj
-    file_name = 'data/3d_tree/3d_tree.obj'
+    #file_name = 'data/3d_tree/3d_tree.obj'
+    file_name = 'data/totoro_target.obj'
     reader = vtk.vtkOBJReader()
     reader.SetFileName(file_name)
     reader.Update()
@@ -178,7 +179,7 @@ def main(argv):
     # camera.SetPosition(xc, yc, d)
 
     obj_camera = scene_renderer.GetActiveCamera()
-    obj_camera.SetViewAngle(viewAngle)
+    #obj_camera.SetViewAngle(viewAngle)
     #obj_camera.SetWindowCenter(windowCenterX, windowCenterY)
 
 
@@ -199,8 +200,8 @@ def main(argv):
 
             rmat, _ = cv2.Rodrigues(rvecs)
 
-            # # method 1
-            # #rmatH = [[0, 0, 0, 0] for x in range(4)]
+            # method 1
+            #rmatH = [[0, 0, 0, 0] for x in range(4)]
             # rmatH = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]], np.float64)
             # rmatH[0][0:3] = rmat[0][0:3]
             # rmatH[1][0:3] = rmat[1][0:3]
@@ -208,35 +209,51 @@ def main(argv):
             # rmatH[0][3] = tvecs[0]
             # rmatH[1][3] = tvecs[1]
             # rmatH[2][3] = tvecs[2]
+
+            # poke = vtk.vtkMatrix4x4()
+            #
+            # for i in range(3):
+            #     for n in range(3):
+            #         poke.SetElement(i, n, rmat[i, n])
+            #     poke.SetElement(i, 3, tvecs[i])
             #
             # vtk_camera = obj_camera.GetViewTransformMatrix()
             # rmatInv = inv(rmatH)
-            # vtk_camera = rmatInv * vtk_camera
-            # obj_camera.ApplyTransform(vtk_camera)
+            # poke.Invert()
+            # poke.Multiply4x4(poke, vtk_camera, vtk_camera)
+            # camera_transform = vtk.vtkTransform()
+            # camera_transform.SetMatrix(vtk_camera)
+            # obj_camera.ApplyTransform(camera_transform)
+            # obj_camera.SetWindowCenter(windowCenterX, windowCenterY)
 
             # method 2
             # scale matrix??
-            rmat[0][0] *= -1
-            rmat[0][1] *= -1
-            rmat[0][2] *= -1
+            rmat[1][0] *= -1
+            rmat[1][1] *= -1
+            rmat[1][2] *= -1
+            rmat[2][0] *= -1
+            rmat[2][1] *= -1
+            rmat[2][2] *= -1
             tvec = tvecs.copy()
-            # tvec[0] *= -1
+            tvec[1] *= -1
+            tvec[2] *= -1
             # normalize rows??
 
+            viewPlaneNormal = (rmat[2][0].copy(), rmat[2][1].copy(), rmat[2][2].copy())
             rmatINV = rmat.copy()
             rmatINV = rmatINV.transpose()
 
             translation = rmatINV.dot(tvec)
             translation *= -1
 
-            viewPlaneNormal = (rmat[2][0], rmat[2][1], rmat[2][2])
 
             # defines depth position of cube
             obj_camera.SetPosition(translation[0], translation[1], translation[2])
 
             # this line makes the cube vanish
-            # obj_camera.SetFocalPoint(translation[0]-viewPlaneNormal[0], translation[1]-viewPlaneNormal[1],translation[2]-viewPlaneNormal[2])
-            obj_camera.SetFocalPoint(tvec[0], tvec[1], tvec[2])
+            obj_camera.SetFocalPoint(translation[0][0]-viewPlaneNormal[0], translation[1][0]-viewPlaneNormal[1], translation[2][0]-viewPlaneNormal[2])
+            #obj_camera.SetFocalPoint(tvec[0], tvec[1], tvec[2])
+            #obj_camera.SetWindowCenter(windowCenterX, windowCenterY)
 
             obj_camera.SetViewUp(rmat[1][0], rmat[1][1], rmat[1][2])
 
