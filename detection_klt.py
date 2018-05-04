@@ -17,7 +17,7 @@ if __name__ == '__main__' :
     minor_ver = 1
 
     if int(minor_ver) < 3:
-        tracker = cv2.Tracker_create(tracker_type)
+        tracker = cv2.TrackerKCF_create()
     else:
         if tracker_type == 'BOOSTING':
             tracker = cv2.TrackerBoosting_create()
@@ -34,14 +34,13 @@ if __name__ == '__main__' :
 
     i = 0
     m_det = 0
+    v=0
     cam = cv2.VideoCapture(0)
     
     while True:
         # Capture frame-by-frame
         ret, frame = cam.read()
 
-        if m_det:
-            print('e')
 
         # Our operations on the frame come here
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -52,7 +51,7 @@ if __name__ == '__main__' :
         
         gray = cv2.GaussianBlur(gray, (5, 5), 1)  # gaussian blur-to smoothen out random edges
         gray_edge = cv2.Canny(gray, 100, 200)  # applying canny edge detection
-        cv2.imshow("jf", gray_edge)
+        #cv2.imshow("jf", gray_edge)
         im2, contours, _ = cv2.findContours(gray_edge, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # finding contours
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]  # sorting contours in reverse order - why? don't know
         # approximating contours
@@ -62,8 +61,8 @@ if __name__ == '__main__' :
             # transform of the image to get the quad in top down view and then the glyph detection algo will proceed
             epsilon = cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, 0.01*epsilon, True)  # with greater percentage a large set is coming
-            cv2.drawContours(frame, cnt, -1, (0, 255, 0), 1)
-            cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
+            #cv2.drawContours(frame, cnt, -1, (0, 255, 0), 1)
+            #cv2.drawContours(frame, approx, -1, (0, 0, 255), 3)
             cv2.imshow('frame', frame)
             vert_num = len(approx)
             if vert_num == 4:
@@ -77,8 +76,8 @@ if __name__ == '__main__' :
                     #print(i)
                     #print(approx)
                     warped_img, H = extractMatrix(gray, approx)
-                    cv2.imshow("original", gray)
-                    cv2.imshow("transformed", warped_img)
+                    #cv2.imshow("original", gray)
+                    #cv2.imshow("transformed", warped_img)
                     idx = pattern_recognition(warped_img)
 
                     if idx == 0:
@@ -90,33 +89,42 @@ if __name__ == '__main__' :
                         m_det=1
 
 
-                        # bbox = (tl[0],tl[1],br[0]-tl[0],br[1]-tl[1])
-                        # cv2.rectangle(frame, (tl[0],tl[1]), (br[0],br[1]), (255,0,0), 2, 1)
-                        # ok = tracker.init(frame, bbox)
-                        # while True:
-                        #      ok, frame = cam.read()
-                        #      if not ok:
-                        #          break
+                        bbox = (tl[0],tl[1],br[0]-tl[0],br[1]-tl[1])
+                        cv2.rectangle(frame, (tl[0],tl[1]), (br[0],br[1]), (255,0,0), 2, 1)
+                        ok = tracker.init(frame, bbox)
+                        while True:
+
+                            ok, frame = cam.read()
+                            if not ok:
+                                break
                      
-                        #     # Update tracker
-                        #     ok, bbox = tracker.update(frame)
+                            # Update tracker
+                            ok, bbox = tracker.update(frame)
                                           
-                        #     # Draw bounding box
-                        #     if ok:
-                        #         ok, bbox = tracker.update(frame)
-                        #         tl[0] = bbox[0]
-                        #         tl[1] = bbox[1]
-                        #         tr[0] = bbox[0] + bbox[2]
-                        #         tr[1] = tl[1]
-                        #         br[0] = tr[0]
-                        #         br[1] = bbox[1] + bbox[3]
-                        #         bl[0] = tl[0]
-                        #         bl[1] = br[1] 
-                        #         substitute_image = cv2.imread('data/mohit.jpeg',1)
-                        #         superimpose_image(frame, substitute_image, (tl, tr, br, bl))                                
-                        #     else :
-                        #         print('failed')
-                        #         break                                
+                            # Draw bounding box
+                            if ok:
+                                # Tracking success
+                                p1 = (int(bbox[0]), int(bbox[1]))
+                                p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
+                                cv2.rectangle(frame, p1, p2, (255,0,0), 2, 1)                                
+                              
+                                tl[0] = bbox[0]
+                                tl[1] = bbox[1]
+                                tr[0] = bbox[0] + bbox[2]
+                                tr[1] = tl[1]
+                                br[0] = tr[0]
+                                br[1] = bbox[1] + bbox[3]
+                                bl[0] = tl[0]
+                                bl[1] = br[1] 
+                                substitute_image = cv2.imread('data/mohit.jpeg',1)
+                                superimpose_image(frame, substitute_image, (tl, tr, br, bl))    
+                                print('klt') 
+                                v=v+1
+                                print(v)                           
+                            else :
+                                print('failed')
+                                v=0
+                                break                                
                                        
 
                     

@@ -3,10 +3,16 @@ from extractMatrix import extractMatrix
 from superimpose_image import superimpose_image
 from pattern_recognition import pattern_recognition
 from order_pts import check_if_rect, order_pts
+from pygame import mixer # Load the required library
+
 
 i = 0
 r=0
 rep=1
+play=1
+stop=0
+mixer.init()
+mixer.music.load('/home/sachin/Desktop/aa1.mp3')
 cam = cv2.VideoCapture(0)
 
 while True:
@@ -56,11 +62,22 @@ while True:
                     substitute_image = cv2.imread('data/tree2.jpg',1)
                     #superimpose_image(frame, substitute_image, approx)
                     r=rep;
+                    if (play==1 and stop==1):
+                        print('detected')
+                        mixer.music.stop()
+                        stop=0
+
                     #break
                 if idx == 1:
                     substitute_image = cv2.imread('data/mohit.jpeg',1)
                     #superimpose_image(frame, substitute_image, approx)
                     r=rep;
+                    print(play)
+                    print(stop)
+                    if (play==1 and stop==0):
+                        print('detected')
+                        mixer.music.play()fffffffffg
+                        stop=1
                     #break
                 
                 if r>0:
