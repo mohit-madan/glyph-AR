@@ -1,13 +1,3 @@
-# glyph-AR
-We are using glyph Recognition for AR application. 
-
-Python 2.7
-
-cv2 - openCV
-vtk - pyVTK
-numpy
-
-=======
 # Glyph-AR
 We have implemented glyph detection for augmented reality applications. We detect glyphs(a playcard, a hieroglyphic symbol) and replace them with a 3D objects using VTK and OpenCV.
 
