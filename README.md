@@ -35,5 +35,11 @@ Run "detection.py"
 We were able to succesfully implement 3D object overaly over glyphs. One needs to be patient while working with VTK ( Python wrapper for OpenGL).
 ![cube_and_totoro](https://user-images.githubusercontent.com/25552500/39655961-5aaeee86-501a-11e8-8877-7c895729464a.png)
 
+For 2D image superposition
+![2D workflow](https://github.com/mohit-madan/glyph-AR/blob/master/results/2D_detection_workflow.png)
+
+More results and **videos** you can find in the folder 'results'
+
+
 # References
 see the file Glyph-References.pdf
