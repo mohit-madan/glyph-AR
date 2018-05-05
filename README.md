@@ -26,10 +26,10 @@ see requirements.txt
 
 # Running the code
 #### 3D AR - Superpose different cubes on glyphs
-To run the AR appllication , just type in the terminal "glyph_detection_main.py". Bring various glyphs in front of the camera and try to see the results. The glyph detection part is very sensitive to lighting conditions and hence you may want to ensure proper lights on the glyph.
+To run the AR appllication , just type in the terminal **glyph_detection_main.py**. Bring various glyphs in front of the camera and try to see the results. The glyph detection part is very sensitive to lighting conditions and hence you may want to ensure proper lights on the glyph.
 
 #### 2D AR - Superpose glyphs with an image
-Run "detection.py"
+Run **detection.py**
 
 # Results 
 We were able to succesfully implement 3D object overaly over glyphs. One needs to be patient while working with VTK ( Python wrapper for OpenGL).
