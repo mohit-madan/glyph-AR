@@ -38,6 +38,12 @@ We were able to succesfully implement 3D object overaly over glyphs. One needs t
 For 2D image superposition
 ![2D workflow](https://github.com/mohit-madan/glyph-AR/blob/master/results/2D_detection_workflow.png)
 
+Video
+
+![Flipping the glyphs](https://github.com/mohit-madan/glyph-AR/blob/master/results/demo2_flipping.gif)
+
+![Totoro_gif](https://github.com/mohit-madan/glyph-AR/blob/master/results/totoro.gif) ![Cube_gif](https://github.com/mohit-madan/glyph-AR/blob/master/results/cube.gif)
+
 More results and **videos** you can find in the folder 'results'
 
 
