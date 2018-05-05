@@ -23,7 +23,7 @@ while True:
 
     gray = cv2.GaussianBlur(gray, (5, 5), 1)  # gaussian blur-to smoothen out random edges
     gray_edge = cv2.Canny(gray, 100, 200)  # applying canny edge detection
-    # cv2.imshow("grayimg", gray_edge)
+    #cv2.imshow("grayimg", gray_edge)
 
     im2, contours, _ = cv2.findContours(gray_edge, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)  # finding contours
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]  # sorting contours in reverse order
@@ -47,8 +47,8 @@ while True:
             if valid:
                 i += 1
                 warped_img, H = extractMatrix(gray, approx)
-                # cv2.imshow("original", gray)
-                # cv2.imshow("transformed", warped_img)
+                #cv2.imshow("original", gray)
+                #cv2.imshow("transformed", warped_img)
 
                 idx = pattern_recognition(warped_img)
 
