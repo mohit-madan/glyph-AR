@@ -1,43 +1,41 @@
-# http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/py_calibration/py_calibration.html
-# https://rdmilligan.wordpress.com/2015/06/28/opencv-camera-calibration-and-pose-estimation-using-python/
+
 
 import numpy as np
-import cv2
-import glob
+import glob 
+import cv2 as cv 
 
-# termination criteria
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+#let us create some points on the object for calbrating the camera 
+obj_pts = np.zeros((6*7,3), np.float32)
+obj_pts[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
 
-# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((6*7, 3), np.float32)
-objp[:,:2] = np.mgrid[0:7, 0:6].T.reshape(-1, 2)
+#stroing the 3D points 
+object_points_array = []
+#assuming all the points were visible intially 
+#store corresponding 2d image points for the same 
+image_points_array = []
 
-# Arrays to store object points and image points from all the images.
-objpoints = [] # 3d point in real world space
-imgpoints = [] # 2d points in image plane.
-
+#load all teh images with fixed content ,
 images = glob.glob('pose/sample_images/*.jpg')
+criteria = (cv2.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 for fname in images:
-    img = cv2.imread(fname)
-    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    image = cv.imread(fname)
+    gray = cv.cvtColor(image,cv.COLOR_BGR2GRAY)
 
-    # Find the chess board corners
-    ret, corners = cv2.findChessboardCorners(gray, (7, 6), None)
+    ret,corners = cv.findChessboardCorners(gray,(7,6),None)
+    #if u are succesful in detecting the chess boarrd, draw the detetcted 
+    #corners using the built in function and store the image points 
+    if ret=True:
+        object_points_array.append(obj_pts)
 
-    # If found, add object points, image points (after refining them)
-    if ret == True:
-        objpoints.append(objp)
+        corners2 = cv.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+        image_points_array.append(corners2)     
 
-        corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
-        imgpoints.append(corners2)
+        image = cv.drawChessboardCorners(image, (7, 6), corners2, ret)
+        cv.imshow('image', image)
+        cv.waitKey(500)
 
-        # Draw and display the corners
-        img = cv2.drawChessboardCorners(img, (7, 6), corners2, ret)
-        cv2.imshow('img', img)
-        cv2.waitKey(500)
+ cv.destroyAllWindows()
 
-cv2.destroyAllWindows()
-
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(object_points, impoints, gray.shape[::-1], None, None)
 np.savez('camcalib.npz', ret=ret, mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
