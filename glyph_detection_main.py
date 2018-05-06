@@ -97,7 +97,6 @@ def main(argv):
     # Create a renderer to display the image in the background
     background_renderer = vtkRenderer()
 
-
     # Object 1: Cube
     # Read .obj
     file_name = 'data/3d_tree/3d_tree.obj'
@@ -119,11 +118,11 @@ def main(argv):
     if ACTIVATE_TOTORO:
         file_name = 'data/totoro_target.obj'
         totoro_coord = [[-0.5, 0., -0.5], [0.5, 0., -0.5],
-                  [0.5, 0., 0.5], [-0.5, 0., 0.5]]
+                        [0.5, 0., 0.5], [-0.5, 0., 0.5]]
     else:
         file_name = 'data/3d_tree/3d_tree.obj'
         totoro_coord = [[-2., -2., 0.], [2., -2., 0.],
-                  [2., 2., 0.], [-2., 2., 0.]]
+                        [2., 2., 0.], [-2., 2., 0.]]
 
     reader = vtk.vtkOBJReader()
     reader.SetFileName(file_name)
@@ -136,13 +135,10 @@ def main(argv):
     totoroActor = vtk.vtkActor()
     totoroActor.SetMapper(totoroMapper)
 
-
     # Object 3: cage_axis to be displayed on glyph
     cage_axis = np.float32([[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0],
                             [0, 0, -1], [0, 1, -1], [1, 1, -1], [1, 0, -1]])
-    cage_coord = [[0., 0., 0.], [1., 0., 0.], [1., 1., 0.],[0., 1., 0.]]
-
-
+    cage_coord = [[0., 0., 0.], [1., 0., 0.], [1., 1., 0.], [0., 1., 0.]]
 
     # create renderer to display objects
     cube_renderer = vtkRenderer()
@@ -195,7 +191,6 @@ def main(argv):
     totoro_camera = totoro_renderer.GetActiveCamera()
     totoro_camera.SetViewAngle(viewAngle)
 
-
     # Render again to set the correct view
     render_window.Render()
 
@@ -237,7 +232,7 @@ def main(argv):
             cube_camera.SetPosition(translation[0], translation[1], translation[2])
 
             cube_camera.SetFocalPoint(translation[0][0] - viewPlaneNormal[0], translation[1][0] - viewPlaneNormal[1],
-                                     translation[2][0] - viewPlaneNormal[2])
+                                      translation[2][0] - viewPlaneNormal[2])
 
             cube_camera.SetViewUp(rmat[1][0], rmat[1][1], rmat[1][2])
 
@@ -249,7 +244,6 @@ def main(argv):
         count0 -= 1
         if count0 <= 0:
             cube_renderer.RemoveActor(CubeActor)
-
 
         if idx == 1:
             totoro_renderer.AddActor(totoroActor)
@@ -279,7 +273,7 @@ def main(argv):
             totoro_camera.SetPosition(translation[0], translation[1], translation[2])
 
             totoro_camera.SetFocalPoint(translation[0][0] - viewPlaneNormal[0], translation[1][0] - viewPlaneNormal[1],
-                                     translation[2][0] - viewPlaneNormal[2])
+                                        translation[2][0] - viewPlaneNormal[2])
 
             totoro_camera.SetViewUp(rmat[1][0], rmat[1][1], rmat[1][2])
 
@@ -291,8 +285,6 @@ def main(argv):
         if count2 <= 0:
             totoro_renderer.RemoveActor(totoroActor)
 
-
-
         # Action Nr. 3: Draw cube on image
         if idx == 1:
             (tl, tr, br, bl) = order_pts(approx)
@@ -303,7 +295,6 @@ def main(argv):
         if count1 > 0:
             frame = draw_cage(frame, tl, imgpts)
             count1 -= 1
-
 
         cv2.imwrite('webcam.jpg', frame)
 

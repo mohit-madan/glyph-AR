@@ -3,9 +3,11 @@ import numpy as np
 from order_pts import order_pts
 
 
+# Input
 # image: complete screen
-# dst: list of points [x,y] of corners of quadrilaterlas
-# superimposes substitute_image at dst
+# dst: list of points [x,y] of corners of quadrilaterals
+# Result
+# superimposes substitute_image at dst on image
 def superimpose_image(image, substitute_image, dst):
 
     dst = order_pts(dst)

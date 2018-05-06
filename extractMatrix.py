@@ -19,7 +19,8 @@ def extractMatrix(image, pts):
     newHeight = max(h1, h2)
     newWidth = max(w1, w2)
 
-    newPoints = np.array([[0, 0], [newWidth-1, 0], [newWidth-1, newHeight-1], [0, newHeight-1]], dtype="float32")
+    newPoints = np.array([[0, 0], [newWidth - 1, 0], [newWidth - 1, newHeight - 1], [0, newHeight - 1]],
+                         dtype="float32")
     # print(newPoints)
     H = cv2.getPerspectiveTransform(pts, newPoints)
     warped_img = cv2.warpPerspective(image, H, (newWidth, newHeight))

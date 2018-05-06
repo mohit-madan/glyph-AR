@@ -8,9 +8,10 @@ def return_with_black_pattern(glyph_pattern, black_pattern, glyph_size):
     # black_pattern_in = [0 for x in range(grid_size*grid_size)]
     black_pattern_in = list(black_pattern)
     for i in range(glyph_size):
-        position_full = (i+1)*grid_size + 1
-        position_glyph = i*glyph_size
-        black_pattern_in[position_full: (position_full+glyph_size)] = glyph_pattern[position_glyph: (position_glyph+glyph_size)]
+        position_full = (i + 1) * grid_size + 1
+        position_glyph = i * glyph_size
+        black_pattern_in[position_full: (position_full + glyph_size)] = glyph_pattern[
+                                                                        position_glyph: (position_glyph + glyph_size)]
     return black_pattern_in
 
 
@@ -18,19 +19,19 @@ def return_with_black_pattern(glyph_pattern, black_pattern, glyph_size):
 # Since arrays are used index is transformed correspondingly
 # https://stackoverflow.com/questions/42519/how-do-you-rotate-a-two-dimensional-array
 def rotate_glyph(glyph, n):
-    res = [0 for x in range(n**2)]
+    res = [0 for x in range(n ** 2)]
     for i in range(n):
         for j in range(n):
-            res[i*n+j] = glyph[(n - j - 1)*n+i]
+            res[i * n + j] = glyph[(n - j - 1) * n + i]
     return res
 
 
 # returns a black border template for any glyph-size
 def generate_black_pattern(glyph_size):
-    result = [0 for x in range((glyph_size+2)**2)]
+    result = [0 for x in range((glyph_size + 2) ** 2)]
     for i in range(glyph_size):
-        position = (i+1)*(glyph_size+2) + 1
-        result[position: position+glyph_size] = [1 for x in range(glyph_size)]
+        position = (i + 1) * (glyph_size + 2) + 1
+        result[position: position + glyph_size] = [1 for x in range(glyph_size)]
 
     return result
 
@@ -40,7 +41,7 @@ def pattern_recognition(image):
     input_glyph = image
     GLYPH_SIZE = 3
     NUM_GLYPHS = 2
-    glyphs = [[0 for x in range(GLYPH_SIZE**2)] for x in range(NUM_GLYPHS)]
+    glyphs = [[0 for x in range(GLYPH_SIZE ** 2)] for x in range(NUM_GLYPHS)]
     glyphs[0] = [0, 1, 0, 1, 0, 0, 0, 1, 1]
     glyphs[1] = [1, 0, 0, 0, 1, 0, 1, 0, 1]
 
@@ -53,20 +54,20 @@ def pattern_recognition(image):
     black_pattern = generate_black_pattern(GLYPH_SIZE)
     # add black border to glyphs and add rotated version to database
     # same glyphs will have same idx//4 (integer division)
-    glyphs_black = [[0 for x in range(grid_size**2)] for x in range(NUM_GLYPHS*4)]
+    glyphs_black = [[0 for x in range(grid_size ** 2)] for x in range(NUM_GLYPHS * 4)]
     for i in range(len(glyphs)):
-        glyphs_black[i*4] = return_with_black_pattern(glyphs[i], black_pattern, GLYPH_SIZE)
+        glyphs_black[i * 4] = return_with_black_pattern(glyphs[i], black_pattern, GLYPH_SIZE)
         for j in range(3):
             glyphs[i] = rotate_glyph(glyphs[i], GLYPH_SIZE)
-            glyphs_black[i*4 + j+1] = return_with_black_pattern(glyphs[i], black_pattern, GLYPH_SIZE)
+            glyphs_black[i * 4 + j + 1] = return_with_black_pattern(glyphs[i], black_pattern, GLYPH_SIZE)
 
     # create map for input glyph
-    glyph_pattern = [0 for x in range(grid_size**2)]  # include border in pattern, has to be 0
+    glyph_pattern = [0 for x in range(grid_size ** 2)]  # include border in pattern, has to be 0
     for grid_x in range(grid_size):
         for grid_y in range(grid_size):
             # check whether square in (x,y) ist black or white
             # iterate over each element in grid
-            num_pixels = int(RESIZE_SIZE/grid_size)  # height and width of each grid element
+            num_pixels = int(RESIZE_SIZE / grid_size)  # height and width of each grid element
             sum_black = 0
             for x in range(num_pixels):
                 for y in range(num_pixels):
@@ -76,7 +77,7 @@ def pattern_recognition(image):
                     if resized_input[im_x][im_y] < BLACK_THRESHOLD:
                         sum_black += 1
             # enough black cells?
-            if sum_black/(num_pixels**2) < BLACK_PERCENT:
+            if sum_black / (num_pixels ** 2) < BLACK_PERCENT:
                 glyph_pattern[grid_x * grid_size + grid_y] = 1
 
     # compare result with our glyph database
@@ -85,7 +86,7 @@ def pattern_recognition(image):
     for i in range(len(glyphs_black)):
         if glyphs_black[i] == glyph_pattern:
             glyph_found = True
-            glyph_idx = i//4
+            glyph_idx = i // 4
             # print('Found matching glyph!')
             # print(glyph_idx)
             break
