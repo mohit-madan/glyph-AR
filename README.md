@@ -31,6 +31,15 @@ To run the AR appllication , just type in the terminal **glyph_detection_main.py
 #### 2D AR - Superpose glyphs with an image
 Run **detection.py**
 
+#### To create your own camera calibration file (camcalib.npz)
+* Run **calibrate_save_pictures.py**
+* Empty the folder 'calibration_images'
+* Print out chessboard pattern on paper or display it on phone
+* Make it visible in frame and change position when "success" is printed. Get at least 10 samples.
+
+* Run **calibrate_get_matrix.py**
+* It will save the calibration information in camcalib.npz
+
 # Results 
 We were able to succesfully implement 3D object overaly over glyphs. One needs to be patient while working with VTK ( Python wrapper for OpenGL).
 ![cube_and_totoro](https://user-images.githubusercontent.com/25552500/39655961-5aaeee86-501a-11e8-8877-7c895729464a.png)
