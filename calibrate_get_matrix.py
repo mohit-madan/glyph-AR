@@ -16,7 +16,7 @@ object_points_array = []
 image_points_array = []
 
 # load images of chessboard
-images = glob.glob('pose/sample_images/*.jpg')
+images = glob.glob('calibration_images/*.jpg')
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 for fname in images:
